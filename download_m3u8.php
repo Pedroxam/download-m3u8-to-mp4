@@ -1,18 +1,6 @@
 <?php
 
-$longopt = array(
-    'url:',
-);
-$params = getopt('', $longopt);
-if (empty($params)) {
-    echo "\n\nThis is a simple download m3u8 tool #_#\n
-usage php download_m3u8.php --url \"{url}\"\n";
-    exit();
-}
-if (empty($params['url'])) {
-    echo "param url is needed\n";
-}
-$url = $params['url'];
+$url = trim($_GET['dl']);
 
 download_m3u8($url);
 
