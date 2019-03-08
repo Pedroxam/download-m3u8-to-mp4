@@ -3,7 +3,8 @@ if(!isset($_GET['dl'])) die('?');
 
 if (substr(php_uname(), 0, 7) == "Windows")
 {
-	define('FFMPEG_PATH', './ffmpeg.exe');  // visit ffmpeg site for download this.
+	$ffmpeg  = dirname( __FILE__ ) . '/ffmpeg.exe';
+	define('FFMPEG_PATH', $ffmpeg);  // visit ffmpeg site for download this.
 }
 else
 {
@@ -42,10 +43,14 @@ function download_m3u8($url, $dir = '')
             }
 			
             $ts_output = "{$dir}/{$key}.ts";
-            $cmd = "curl -L -o {$ts_output} '{$value}'";
 			
-			echo betterExec($cmd); //exec cmd
-			
+			//windows
+			if (!substr(php_uname(), 0, 7) == "Windows")
+			{
+				$cmd = "curl -L -o {$ts_output} '{$value}'";
+				betterExec($cmd); //exec cmd
+			}
+	
             echo "\n$cmd\n";
 			
             if (is_file($ts_output))
@@ -85,8 +90,8 @@ function download_m3u8($url, $dir = '')
             }
 			else
 			{
-                echo "create mp4_outputs file failed ;\n $cmd";
-                exit();
+				//update
+				makedir($ts_output);
             }
         }
         $last = "{$dir}/output.mp4";
@@ -100,7 +105,11 @@ function download_m3u8($url, $dir = '')
 			
 			$filelist_file = dirname(__FILE__) . "/filelist.txt";
 			
-            file_put_contents($filelist_file, $fileliststr);
+            $put = file_put_contents($filelist_file, $fileliststr);
+			
+			if(!$put) die("\n can't make filelist.txt \n");
+			
+			sleep('.7');
 			
 			$cmd = FFMPEG_PATH . " -f concat -i $filelist_file -c copy $path";
 			
@@ -134,6 +143,7 @@ function betterExec($cmd)
 	//windows
 	if (substr(php_uname(), 0, 7) == "Windows")
 	{
+		$cmd = str_replace([PHP_EOL,' \\'],[' ',' '],$cmd);
 		pclose(popen("start /B " . $cmd . " 1> $log 2>&1", "r"));
 	}
 	//linux
