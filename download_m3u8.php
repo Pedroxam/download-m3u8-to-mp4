@@ -6,8 +6,16 @@ download_m3u8($url);
 
 function download_m3u8($url, $dir = '')
 {
+    if (substr(php_uname(), 0, 7) == "Windows")
+    {
+        $ffmpeg  = './ffmpeg.exe'; // download from offical ffmpeg site
+    }
+    else {
+        $ffmpeg = exec('which ffmpeg'); // or '/usr/bin/ffmpeg';
+    }
+    
     $content = file_get_contents($url);
-    // echo $content;
+
     if (preg_match_all('/(http|https):\/\/.*/', $content, $matches) or preg_match_all('/.+\.ts/', $content, $matches)) {
         if (!$dir) {
             $dir = "video/" . md5($url);
@@ -46,7 +54,7 @@ function download_m3u8($url, $dir = '')
         foreach ($to_concat as $key => $value) {
             $str_concat = implode('|', $value);
             $mp4_output = "{$dir}/output{$key}.mp4";
-            $cmd = "ffmpeg -i \"concat:{$str_concat}\" -acodec copy -vcodec copy -absf aac_adtstoasc {$mp4_output}";
+            $cmd = "$ffmpeg -i \"concat:{$str_concat}\" -acodec copy -vcodec copy -absf aac_adtstoasc {$mp4_output}";
             exec($cmd);
             echo "\n$cmd\n";
             if (is_file($mp4_output)) {
@@ -64,7 +72,7 @@ function download_m3u8($url, $dir = '')
             $filelist_file = "filelist.txt";
             file_put_contents($filelist_file, $fileliststr);
 
-            $cmd = "ffmpeg -f concat -i {$filelist_file} -c copy {$last}";
+            $cmd = "$ffmpeg -f concat -i {$filelist_file} -c copy {$last}";
             exec($cmd);
             echo "\n$cmd\n";
         } else {
@@ -81,7 +89,6 @@ function download_m3u8($url, $dir = '')
         } else {
             echo "\n\nfailed\n";
         }
-
 
     }
 }
